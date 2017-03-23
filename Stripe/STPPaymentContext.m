@@ -156,6 +156,7 @@
 - (void)setPaymentMethodTuple:(STPPaymentMethodTuple *)paymentMethodTuple {
     if (![_paymentMethodTuple isEqual:paymentMethodTuple]) {
         _paymentMethodTuple = paymentMethodTuple;
+
         stpDispatchToMainThreadIfNecessary(^{
             [self.delegate paymentContextDidChange:self];
         });
@@ -195,8 +196,7 @@
 }
 
 - (NSArray<id<STPPaymentMethod>> *)paymentMethods {
-    return [NSSet setWithArray:[self.paymentMethodTuple.availablePaymentTypes
-                                arrayByAddingObjectsFromArray:self.paymentMethodTuple.savedPaymentMethods]].allObjects;
+    return self.paymentMethodTuple.allPaymentMethods.allObjects;
 }
 
 - (void)setPaymentAmount:(NSInteger)paymentAmount {
