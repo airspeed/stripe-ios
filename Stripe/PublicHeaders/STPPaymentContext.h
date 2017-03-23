@@ -19,7 +19,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class STPPaymentContext, STPAPIClient, STPTheme;
+@class STPPaymentContext, STPTheme;
 @protocol STPBackendAPIAdapter, STPPaymentMethod, STPPaymentContextDelegate;
 
 /**
@@ -89,6 +89,11 @@ NS_ASSUME_NONNULL_BEGIN
  *  The user's currently selected payment method. May be nil.
  */
 @property(nonatomic, readonly, nullable)id<STPPaymentMethod> selectedPaymentMethod;
+
+/**
+ *  The available payment methods the user can choose between. May be nil.
+ */
+@property(nonatomic, readonly, nullable)NSArray<id<STPPaymentMethod>> *paymentMethods;
 
 /**
  *  The user's currently selected shipping method. May be nil.
@@ -198,6 +203,8 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  *  Inside this method, you should make a call to your backend API to make a charge with that Customer + source, and invoke the `completion` block when that is done.
  *
+ *  @note This method is not called for redirect-based sources. See `paymentContext:redirectDidReturnForSource:`
+ *
  *  @param paymentContext The context that succeeded
  *  @param paymentResult  Information associated with the payment that you can pass to your server. You should go to your backend API with this payment result and make a charge to complete the payment, passing `paymentResult.source.stripeID` as the `source` parameter to the create charge method and your customer's ID as the `customer` parameter (see stripe.com/docs/api#charge_create for more info). Once that's done call the `completion` block with any error that occurred (or none, if the charge succeeded). @see STPPaymentResult.h
  *  @param completion     Call this block when you're done creating a charge (or subscription, etc) on your backend. If it succeeded, call `completion(nil)`. If it failed with an error, call `completion(error)`.
@@ -205,6 +212,24 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)paymentContext:(STPPaymentContext *)paymentContext
 didCreatePaymentResult:(STPPaymentResult *)paymentResult
             completion:(STPErrorBlock)completion;
+//
+///**
+// This method is called when a user returns to your app after being redirected
+// out to complete a redirect-based source payment.
+// 
+// For source payments that have flow's other than "none", your server backend 
+// must listen for a Stripe webook that the source has become chargeable to
+// complete the charge. You should _NOT_ pass the result from this callback to
+// your server complete the charge.
+// 
+// You should check the state of the returned source here and provide approriate
+// UI to the user. Depending on what type of payment method the user is using, the
+// source returned may still be in one of serveral states:
+//    * "pending" state (the state of the charge cannot be determined at this time)
+//    * "failed" or "canceled" state (user cancelled charge or there was some other error) 
+//    * "chargeable" or "consumed" states (user completed the charge).
+// */
+//- (void)paymentContext:(STPPaymentContext *)paymentContext redirectDidReturnForSource:(STPSource *)source;
 
 /**
  *  This is invoked by an `STPPaymentContext` when it is finished. This will be called after the payment is done and all necessary UI has been dismissed. You should inspect the returned `status` and behave appropriately. For example: if it's `STPPaymentStatusSuccess`, show the user a receipt. If it's `STPPaymentStatusError`, inform the user of the error. If it's `STPPaymentStatusUserCanceled`, do nothing.
