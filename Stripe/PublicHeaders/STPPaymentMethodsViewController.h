@@ -52,7 +52,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 *  If you've already collected some information from your user, you can set it here and it'll be automatically filled out when possible/appropriate in any UI that the payment context creates.
 */
-@property(nonatomic)STPUserInformation *prefilledInformation;
+@property(nonatomic, strong, nullable)STPUserInformation *prefilledInformation;
 
 /**
  *  If you're pushing `STPPaymentMethodsViewController` onto an existing `UINavigationController`'s stack, you should use this method to dismiss it, since it may have pushed an additional add card view controller onto the navigation controller's stack.
@@ -88,11 +88,19 @@ NS_ASSUME_NONNULL_BEGIN
               didFailToLoadWithError:(NSError *)error;
 
 /**
- *  This is called when the user taps "cancel". It's also called after the user directly selects or adds a payment method, so it will often be called immediately after calling `paymentMethodsViewController:didSelectPaymentMethod:`. You should dismiss the view controller when this is called.
+ *  This is called when the user selects or adds a payment method, so it will often be called immediately after calling `paymentMethodsViewController:didSelectPaymentMethod:`. You should dismiss the view controller when this is called.
  *
  *  @param paymentMethodsViewController the view controller that has finished
  */
 - (void)paymentMethodsViewControllerDidFinish:(STPPaymentMethodsViewController *)paymentMethodsViewController;
+
+/**
+ *  This is called when the user taps "cancel".
+ *  You should dismiss the view controller when this is called.
+ *
+ *  @param paymentMethodsViewController the view controller that has finished
+ */
+- (void)paymentMethodsViewControllerDidCancel:(STPPaymentMethodsViewController *)paymentMethodsViewController;
 
 @end
 
